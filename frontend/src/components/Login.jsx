@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../api/axios';
+import { useNavigate, Link } from 'react-router-dom';
+import authService from '../api/authService';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -11,8 +11,10 @@ const Login = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const response = await api.post('/auth/login', { email, password });
-            const user = response.data;
+            const response = await authService.login({ email, password });
+            const { token, ...user } = response.data;
+
+            localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify(user));
 
             if (user.role === 'STUDENT') {
@@ -23,7 +25,7 @@ const Login = () => {
                 navigate('/admin');
             }
         } catch (err) {
-            setError(err.response?.data || 'Login failed');
+            setError(err.response?.data?.message || 'Login failed');
         }
     };
 
@@ -59,16 +61,10 @@ const Login = () => {
                     >
                         Login
                     </button>
-                    <div className="text-sm text-center text-gray-500 mt-4">
-                        <p>Default Users:</p>
-                        <ul className="list-disc align-middle inline-block text-left">
-                            <li>student1@test.com / student123 (Eligible)</li>
-                            <li>student2@test.com / student123 (Not Eligible)</li>
-                            <li>coordinator@test.com / coord123</li>
-                            <li>admin@test.com / admin123</li>
-                        </ul>
-                    </div>
                 </form>
+                <div className="text-center">
+                    <Link to="/register" className="text-indigo-600 hover:text-indigo-800">Don't have an account? Register</Link>
+                </div>
             </div>
         </div>
     );

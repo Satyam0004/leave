@@ -6,6 +6,7 @@ import lombok.Data;
 @Entity
 @Data
 @Table(name = "users")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,6 +16,7 @@ public class User {
     private String email;
 
     @Column(nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private String password; // In a real app, this should be hashed
 
     @Column(nullable = false)
@@ -23,13 +25,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
-    
-    // For students specifically
-    private Double attendancePercentage;
 
-    public enum Role {
-        STUDENT,
-        COORDINATOR,
-        ADMIN
-    }
+    @Column(nullable = false)
+    private boolean isApproved = false;
 }

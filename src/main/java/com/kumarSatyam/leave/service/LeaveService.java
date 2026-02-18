@@ -1,15 +1,16 @@
 package com.kumarSatyam.leave.service;
 
+import com.kumarSatyam.leave.entity.Coordinator;
 import com.kumarSatyam.leave.entity.LeaveRequest;
-import com.kumarSatyam.leave.entity.User;
+import com.kumarSatyam.leave.entity.Student;
+import com.kumarSatyam.leave.repository.CoordinatorRepository;
 import com.kumarSatyam.leave.repository.LeaveRequestRepository;
-import com.kumarSatyam.leave.repository.UserRepository;
+import com.kumarSatyam.leave.repository.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class LeaveService {
@@ -18,13 +19,22 @@ public class LeaveService {
     private LeaveRequestRepository leaveRequestRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private StudentRepository studentRepository;
+
+    @Autowired
+    private CoordinatorRepository coordinatorRepository;
 
     public String applyForLeave(LeaveRequest request) {
-        User student = userRepository.findById(request.getStudent().getId()).orElseThrow(() -> new RuntimeException("Student not found"));
+        // request.getStudent() should be set with ID, but we need to fetch full entity logic?
+        // Usually, the controller passes a request with a transient Student object or just ID.
+        // Let's assume request.getStudent().getId() is valid.
+        
+        Long studentId = request.getStudent().getId();
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
         
         // 1. Check Eligibility: 75% attendance
-        if (student.getAttendancePercentage() < 75.0) {
+        if (student.getAttendancePercentage() != null && student.getAttendancePercentage() < 75.0) {
             return "Not Eligible: Attendance is below 75%.";
         }
 
@@ -51,14 +61,14 @@ public class LeaveService {
     }
     
     public List<LeaveRequest> getStudentLeaves(Long studentId) {
-        User student = new User();
-        student.setId(studentId);
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
         return leaveRequestRepository.findByStudent(student);
     }
 
     public LeaveRequest updateLeaveStatus(Long leaveId, LeaveRequest.Status status, Long coordinatorId, String comment) {
         LeaveRequest leave = leaveRequestRepository.findById(leaveId).orElseThrow(() -> new RuntimeException("Leave not found"));
-        User coordinator = userRepository.findById(coordinatorId).orElseThrow(() -> new RuntimeException("Coordinator not found"));
+        Coordinator coordinator = coordinatorRepository.findById(coordinatorId).orElseThrow(() -> new RuntimeException("Coordinator not found"));
         
         leave.setStatus(status);
         leave.setCoordinator(coordinator);

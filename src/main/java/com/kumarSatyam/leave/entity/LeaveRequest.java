@@ -15,7 +15,7 @@ public class LeaveRequest {
 
     @ManyToOne
     @JoinColumn(name = "student_id", nullable = false)
-    private User student;
+    private Student student;
 
     @Column(nullable = false)
     private LocalDate startDate;
@@ -32,7 +32,7 @@ public class LeaveRequest {
 
     @ManyToOne
     @JoinColumn(name = "coordinator_id")
-    private User coordinator; // The coordinator who approved/declined
+    private Coordinator coordinator; // The coordinator who approved/declined
 
     private String coordinatorComment;
     
