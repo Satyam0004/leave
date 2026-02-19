@@ -44,55 +44,85 @@ const Register = () => {
                 });
             }
             setMessage(response.data.message);
-            // Optionally redirect after a delay
             setTimeout(() => navigate('/'), 3000);
         } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed');
+            setError(err.response?.data?.message || 'Registration failed. Please check your details.');
         }
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100">
-            <div className="w-full max-w-md p-8 space-y-6 bg-white rounded shadow-md">
-                <h2 className="text-2xl font-bold text-center">Register</h2>
-                {message && <p className="text-green-500 text-center">{message}</p>}
-                {error && <p className="text-red-500 text-center">{error}</p>}
+        <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
+            {/* Animated Background */}
+            <div className="auth-bg">
+                <div className="orb orb-1"></div>
+                <div className="orb orb-2"></div>
+            </div>
 
-                <div className="flex justify-center space-x-4 mb-4">
+            <div className="glass-auth-card !max-w-lg">
+                <div className="text-center mb-8">
+                    <h2 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Join the Portal</h2>
+                    <p className="text-gray-500 dark:text-gray-400 mt-2">Select your role and create an account</p>
+                </div>
+
+                <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl mb-8">
                     <button
-                        className={`px-4 py-2 rounded ${role === 'STUDENT' ? 'bg-indigo-600 text-white' : 'bg-gray-200'}`}
+                        className={`flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${role === 'STUDENT' ? 'bg-white dark:bg-gray-700 text-indigo-600 shadow-sm' : 'text-gray-400'}`}
                         onClick={() => setRole('STUDENT')}
                     >
-                        Student
+                        🎓 Student
                     </button>
                     <button
-                        className={`px-4 py-2 rounded ${role === 'COORDINATOR' ? 'bg-indigo-600 text-white' : 'bg-gray-200'}`}
+                        className={`flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${role === 'COORDINATOR' ? 'bg-white dark:bg-gray-700 text-indigo-600 shadow-sm' : 'text-gray-400'}`}
                         onClick={() => setRole('COORDINATOR')}
                     >
-                        Coordinator
+                        👔 Coordinator
                     </button>
                 </div>
 
+                {message && (
+                    <div className="p-4 mb-6 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-sm rounded-xl border border-green-100 dark:border-green-800 animate-in fade-in slide-in-from-top-4">
+                        {message}
+                    </div>
+                )}
+                {error && (
+                    <div className="p-4 mb-6 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm rounded-xl border border-red-100 dark:border-red-800 animate-shake">
+                        {error}
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <input type="text" name="name" placeholder="Name" onChange={handleChange} required className="w-full px-3 py-2 border rounded" />
-                    <input type="email" name="email" placeholder="Email" onChange={handleChange} required className="w-full px-3 py-2 border rounded" />
-                    <input type="password" name="password" placeholder="Password" onChange={handleChange} required className="w-full px-3 py-2 border rounded" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-4">
+                            <input type="text" name="name" placeholder="Full Name" onChange={handleChange} required className="auth-input" />
+                            <input type="email" name="email" placeholder="Email Address" onChange={handleChange} required className="auth-input" />
+                            <input type="password" name="password" placeholder="Password" onChange={handleChange} required className="auth-input" />
+                        </div>
 
-                    {role === 'STUDENT' && (
-                        <>
-                            <input type="text" name="rollNumber" placeholder="Roll Number" onChange={handleChange} required className="w-full px-3 py-2 border rounded" />
-                            <input type="text" name="studentClass" placeholder="Class (e.g., Class A)" onChange={handleChange} required className="w-full px-3 py-2 border rounded" />
-                        </>
-                    )}
+                        <div className="space-y-4">
+                            {role === 'STUDENT' && (
+                                <>
+                                    <input type="text" name="rollNumber" placeholder="Roll Number" onChange={handleChange} required className="auth-input" />
+                                    <input type="text" name="studentClass" placeholder="Class (e.g., CSE-B)" onChange={handleChange} required className="auth-input" />
+                                </>
+                            )}
+                            {role === 'COORDINATOR' && (
+                                <input type="text" name="assignedClass" placeholder="Assigned Class" onChange={handleChange} required className="auth-input" />
+                            )}
+                        </div>
+                    </div>
 
-                    {role === 'COORDINATOR' && (
-                        <input type="text" name="assignedClass" placeholder="Assigned Class (e.g., Class A)" onChange={handleChange} required className="w-full px-3 py-2 border rounded" />
-                    )}
-
-                    <button type="submit" className="w-full px-4 py-2 text-white bg-indigo-600 rounded hover:bg-indigo-700">Register</button>
+                    <button type="submit" className="btn-auth mt-4 uppercase tracking-widest font-black">
+                        Complete Registration
+                    </button>
                 </form>
-                <div className="text-center">
-                    <Link to="/" className="text-indigo-600 hover:text-indigo-800">Already have an account? Login</Link>
+
+                <div className="mt-8 text-center">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Already have an account?{" "}
+                        <Link to="/" className="font-black text-indigo-600 dark:text-indigo-400 hover:underline">
+                            Log In
+                        </Link>
+                    </p>
                 </div>
             </div>
         </div>

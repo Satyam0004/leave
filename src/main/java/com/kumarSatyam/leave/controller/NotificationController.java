@@ -47,4 +47,11 @@ public class NotificationController {
         notificationRepository.save(notification);
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/clear-all")
+    public ResponseEntity<?> clearAll() {
+        User currentUser = getCurrentUser();
+        notificationRepository.deleteByRecipient_Id(currentUser.getId());
+        return ResponseEntity.ok().build();
+    }
 }

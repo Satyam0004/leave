@@ -37,6 +37,19 @@ public class CoordinatorController {
         return ResponseEntity.ok(coordinatorService.getPendingStudentsForClass(coordinator.getAssignedClass()));
     }
 
+    @GetMapping("/students")
+    public ResponseEntity<List<Student>> getAllStudents() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow();
+        
+        if (!(user instanceof Coordinator)) {
+            throw new RuntimeException("Current user is not a coordinator");
+        }
+        
+        Coordinator coordinator = (Coordinator) user;
+        return ResponseEntity.ok(coordinatorService.getStudentsByClass(coordinator.getAssignedClass()));
+    }
+
     @PostMapping("/approve-student/{id}")
     public ResponseEntity<String> approveStudent(@PathVariable Long id) {
         // In a real app, verify that the student belongs to the coordinator's class

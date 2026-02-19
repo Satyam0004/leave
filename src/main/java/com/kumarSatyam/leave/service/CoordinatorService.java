@@ -43,6 +43,10 @@ public class CoordinatorService {
         return studentRepository.findByStudentClassAndIsApprovedFalse(studentClass);
     }
 
+    public List<Student> getStudentsByClass(String studentClass) {
+        return studentRepository.findByStudentClass(studentClass);
+    }
+
     public void approveStudent(Long studentId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));

@@ -60,63 +60,111 @@ const StudentDashboard = () => {
     };
 
     return (
-        <div className="container mx-auto p-4 space-y-8">
-            <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">Student Dashboard</h2>
-
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">Apply for Leave</h3>
-                {message && <p className="text-green-500 mb-4">{message}</p>}
-                {error && <p className="text-red-500 mb-4">{error}</p>}
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
-                            <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} required className="w-full px-3 py-2 mt-1 border rounded-md dark:bg-gray-700 dark:text-white" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
-                            <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} required className="w-full px-3 py-2 mt-1 border rounded-md dark:bg-gray-700 dark:text-white" />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason</label>
-                        <textarea name="reason" value={formData.reason} onChange={handleChange} required className="w-full px-3 py-2 mt-1 border rounded-md dark:bg-gray-700 dark:text-white" rows="3"></textarea>
-                    </div>
-                    <button type="submit" className="px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Submit Application</button>
-                </form>
+        <div className="space-y-6">
+            <div className="mb-8">
+                <h2 className="text-3xl font-black text-gray-900 dark:text-white">Student Dashboard</h2>
+                <p className="text-gray-500 dark:text-gray-400">Welcome back! Apply for leave and track your status.</p>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">My Leave History</h3>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead className="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Start Date</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">End Date</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Reason</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Coordinator Comment</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            {leaves.map((leave) => (
-                                <tr key={leave.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{leave.startDate}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{leave.endDate}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{leave.reason}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${leave.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                                            leave.status === 'DECLINED' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
-                                            }`}>
-                                            {leave.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{leave.coordinatorComment || '-'}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Apply Form */}
+                <div className="lg:col-span-1">
+                    <div className="glass-card p-6 sticky top-24">
+                        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                            <span>📝</span> Apply for Leave
+                        </h3>
+                        {message && <div className="p-3 mb-4 bg-green-50 text-green-700 text-sm rounded-lg border border-green-100">{message}</div>}
+                        {error && <div className="p-3 mb-4 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">{error}</div>}
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Start Date</label>
+                                <input
+                                    type="date"
+                                    name="startDate"
+                                    value={formData.startDate}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full px-4 py-2 border rounded-xl dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">End Date</label>
+                                <input
+                                    type="date"
+                                    name="endDate"
+                                    value={formData.endDate}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full px-4 py-2 border rounded-xl dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Reason</label>
+                                <textarea
+                                    name="reason"
+                                    value={formData.reason}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full px-4 py-2 border rounded-xl dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none"
+                                    rows="4"
+                                    placeholder="Explain why you need leave..."
+                                ></textarea>
+                            </div>
+                            <button type="submit" className="btn-primary w-full py-3 font-bold">
+                                Submit Application
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                {/* History Table */}
+                <div className="lg:col-span-2">
+                    <div className="glass-card p-6 min-h-[400px]">
+                        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                            <span>📜</span> My Leave History
+                        </h3>
+
+                        <div className="table-container">
+                            <table className="table-modern">
+                                <thead>
+                                    <tr>
+                                        <th>Dates</th>
+                                        <th>Reason</th>
+                                        <th>Status</th>
+                                        <th>Feedback</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                                    {leaves.length === 0 ? (
+                                        <tr><td colSpan="4" className="py-12 text-center text-gray-400">No leave applications found</td></tr>
+                                    ) : (
+                                        leaves.map((leave) => (
+                                            <tr key={leave.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/20">
+                                                <td className="px-6 py-4">
+                                                    <div className="text-sm font-semibold">{leave.startDate}</div>
+                                                    <div className="text-[10px] text-gray-300">to</div>
+                                                    <div className="text-sm font-semibold">{leave.endDate}</div>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-[200px] truncate">{leave.reason}</td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`badge ${leave.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                                                            leave.status === 'DECLINED' ? 'bg-red-100 text-red-800' :
+                                                                'bg-yellow-100 text-yellow-800'
+                                                        }`}>
+                                                        {leave.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm italic text-gray-500">
+                                                    {leave.coordinatorComment || 'No feedback yet'}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

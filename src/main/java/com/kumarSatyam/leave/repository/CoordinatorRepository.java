@@ -7,4 +7,5 @@ import java.util.List;
 public interface CoordinatorRepository extends JpaRepository<Coordinator, Long> {
     List<Coordinator> findByAssignedClass(String assignedClass);
     List<Coordinator> findByIsApprovedFalse();
+    List<Coordinator> findByIsApprovedTrue();
 }

@@ -25,45 +25,73 @@ const Login = () => {
                 navigate('/admin');
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Login failed');
+            setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
         }
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100">
-            <div className="w-full max-w-md p-8 space-y-6 bg-white rounded shadow-md">
-                <h2 className="text-2xl font-bold text-center">Login</h2>
-                {error && <p className="text-red-500 text-center">{error}</p>}
-                <form onSubmit={handleLogin} className="space-y-4">
+        <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
+            {/* Animated Background */}
+            <div className="auth-bg">
+                <div className="orb orb-1"></div>
+                <div className="orb orb-2"></div>
+            </div>
+
+            <div className="glass-auth-card">
+                <div className="text-center mb-10">
+                    <div className="inline-block p-4 rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-200 mb-4 animate-bounce">
+                        <span className="text-3xl">🔓</span>
+                    </div>
+                    <h2 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Welcome Back</h2>
+                    <p className="text-gray-500 dark:text-gray-400 mt-2">Sign in to manage your leave portal</p>
+                </div>
+
+                {error && (
+                    <div className="p-4 mb-6 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm rounded-xl border border-red-100 dark:border-red-800 animate-shake">
+                        {error}
+                    </div>
+                )}
+
+                <form onSubmit={handleLogin} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Email</label>
+                        <label className="block text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2 ml-1">Email Address</label>
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+                            placeholder="name@university.com"
+                            className="auth-input"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Password</label>
+                        <div className="flex justify-between items-center mb-2 ml-1">
+                            <label className="block text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Password</label>
+                            <a href="#" className="text-[10px] font-bold text-indigo-600 uppercase tracking-tighter">Forgot?</a>
+                        </div>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            className="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+                            placeholder="••••••••"
+                            className="auth-input"
                         />
                     </div>
-                    <button
-                        type="submit"
-                        className="w-full px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                        Login
+
+                    <button type="submit" className="btn-auth group relative overflow-hidden">
+                        <span className="relative z-10 uppercase tracking-widest">Secure Login</span>
+                        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                     </button>
                 </form>
-                <div className="text-center">
-                    <Link to="/register" className="text-indigo-600 hover:text-indigo-800">Don't have an account? Register</Link>
+
+                <div className="mt-10 text-center">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                        New to the portal?{" "}
+                        <Link to="/register" className="font-black text-indigo-600 dark:text-indigo-400 hover:underline decoration-2 underline-offset-4">
+                            Create Account
+                        </Link>
+                    </p>
                 </div>
             </div>
         </div>

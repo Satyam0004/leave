@@ -17,10 +17,19 @@ public class AdminService {
         return coordinatorRepository.findByIsApprovedFalse();
     }
 
+    public List<Coordinator> getAllCoordinators() {
+        return coordinatorRepository.findByIsApprovedTrue();
+    }
+
     public void approveCoordinator(Long coordinatorId) {
         Coordinator coordinator = coordinatorRepository.findById(coordinatorId)
                 .orElseThrow(() -> new RuntimeException("Coordinator not found"));
         coordinator.setApproved(true);
         coordinatorRepository.save(coordinator);
+    }
+
+    public Coordinator getCoordinatorById(Long id) {
+        return coordinatorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Coordinator not found"));
     }
 }
