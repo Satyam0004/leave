@@ -7,6 +7,9 @@ const CoordinatorDashboard = () => {
     const [pendingStudents, setPendingStudents] = useState([]);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [actionLeaveId, setActionLeaveId] = useState(null);
+    const [actionType, setActionType] = useState(null);
+    const [comment, setComment] = useState('');
     const currentUser = authService.getCurrentUser();
 
     useEffect(() => {
@@ -48,7 +51,7 @@ const CoordinatorDashboard = () => {
         try {
             await api.put(`/leaves/${id}/status`, {
                 status,
-                coordinatorId: "0", // Backend uses SecurityContext now, but might still expect a value or map
+                coordinatorId: currentUser.id, // Ensure we send current coordinator ID if needed, though backend gets it from context
                 comment
             });
             fetchLeaves();
@@ -58,6 +61,27 @@ const CoordinatorDashboard = () => {
             setError('Failed to update leave status');
             setTimeout(() => setError(''), 3000);
         }
+    };
+
+    const handleActionSearch = (id, type) => {
+        setActionLeaveId(id);
+        setActionType(type);
+        setComment('');
+    };
+
+    const confirmAction = () => {
+        if (actionLeaveId && actionType) {
+            updateLeaveStatus(actionLeaveId, actionType, comment);
+            setActionLeaveId(null);
+            setActionType(null);
+            setComment('');
+        }
+    };
+
+    const cancelAction = () => {
+        setActionLeaveId(null);
+        setActionType(null);
+        setComment('');
     };
 
     return (
@@ -125,7 +149,7 @@ const CoordinatorDashboard = () => {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{leave.reason}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${leave.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                                                leave.status === 'DECLINED' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                                            leave.status === 'DECLINED' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
                                             }`}>
                                             {leave.status}
                                         </span>
@@ -133,8 +157,8 @@ const CoordinatorDashboard = () => {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                         {leave.status === 'PENDING' && (
                                             <>
-                                                <button onClick={() => updateLeaveStatus(leave.id, 'APPROVED', 'Approved')} className="text-green-600 hover:text-green-900 dark:hover:text-green-400">Approve</button>
-                                                <button onClick={() => updateLeaveStatus(leave.id, 'DECLINED', 'Declined')} className="text-red-600 hover:text-red-900 dark:hover:text-red-400">Decline</button>
+                                                <button onClick={() => handleActionSearch(leave.id, 'APPROVED')} className="text-green-600 hover:text-green-900 dark:hover:text-green-400">Approve</button>
+                                                <button onClick={() => handleActionSearch(leave.id, 'DECLINED')} className="text-red-600 hover:text-red-900 dark:hover:text-red-400">Decline</button>
                                             </>
                                         )}
                                     </td>
@@ -143,6 +167,37 @@ const CoordinatorDashboard = () => {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Action Modal */}
+                {actionLeaveId && (
+                    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+                        <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-xl w-96">
+                            <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">
+                                {actionType === 'APPROVED' ? 'Approve' : 'Decline'} Leave Request
+                            </h3>
+                            <textarea
+                                className="w-full p-2 border rounded mb-4 dark:bg-gray-700 dark:text-gray-100"
+                                placeholder="Add a comment (optional)"
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                            />
+                            <div className="flex justify-end space-x-2">
+                                <button
+                                    onClick={cancelAction}
+                                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmAction}
+                                    className={`px-4 py-2 text-white rounded ${actionType === 'APPROVED' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+                                >
+                                    Confirm
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

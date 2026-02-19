@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -64,11 +65,13 @@ public class LeaveController {
         return ResponseEntity.ok(leaveService.getStudentLeaves(currentUser.getId()));
     }
 
-    // COORDINATOR/ADMIN: View all leaves
+    // COORDINATOR/ADMIN: View all leaves with optional filters
     @GetMapping("/all")
     @PreAuthorize("hasAnyRole('COORDINATOR', 'ADMIN')")
-    public ResponseEntity<List<LeaveRequest>> getAllLeaves() {
-        return ResponseEntity.ok(leaveService.getAllLeaves());
+    public ResponseEntity<List<LeaveRequest>> getAllLeaves(
+            @RequestParam(required = false) String section,
+            @RequestParam(required = false) LocalDate date) {
+        return ResponseEntity.ok(leaveService.getAllLeaves(section, date));
     }
 
     // COORDINATOR: Approve/Decline leave

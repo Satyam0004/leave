@@ -2,16 +2,17 @@ import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
 
 const AdminDashboard = () => {
-    const [leaves, setLeaves] = useState([]); // Assuming admin also views leaves? Or just approvals?
-    // Let's focus on approvals as primary admin task for now, plus all leaves maybe.
+    const [leaves, setLeaves] = useState([]);
     const [pendingCoordinators, setPendingCoordinators] = useState([]);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [filterSection, setFilterSection] = useState('');
+    const [filterDate, setFilterDate] = useState('');
 
     useEffect(() => {
         fetchPendingCoordinators();
         fetchAllLeaves();
-    }, []);
+    }, [filterSection, filterDate]);
 
     const fetchPendingCoordinators = async () => {
         try {
@@ -24,7 +25,11 @@ const AdminDashboard = () => {
 
     const fetchAllLeaves = async () => {
         try {
-            const response = await api.get('/leaves/all');
+            const params = {};
+            if (filterSection) params.section = filterSection;
+            if (filterDate) params.date = filterDate;
+
+            const response = await api.get('/leaves/all', { params });
             setLeaves(response.data);
         } catch (err) {
             console.error("Failed to fetch leaves", err);
@@ -89,30 +94,52 @@ const AdminDashboard = () => {
 
             <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                 <h3 className="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">All Leave Requests</h3>
-                {/* Reuse table logic or component for leaves if needed, simplifying for now */}
+
+                <div className="flex gap-4 mb-4">
+                    <input
+                        type="text"
+                        placeholder="Filter by Class/Section"
+                        value={filterSection}
+                        onChange={(e) => setFilterSection(e.target.value)}
+                        className="p-2 border rounded dark:bg-gray-700 dark:text-gray-100"
+                    />
+                    <input
+                        type="date"
+                        value={filterDate}
+                        onChange={(e) => setFilterDate(e.target.value)}
+                        className="p-2 border rounded dark:bg-gray-700 dark:text-gray-100"
+                    />
+                    <button onClick={fetchAllLeaves} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Apply Filters</button>
+                    <button onClick={() => { setFilterSection(''); setFilterDate(''); }} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Clear</button>
+                </div>
+
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead className="bg-gray-50 dark:bg-gray-700">
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Student</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Class</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Dates</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Reason</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Approved By</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             {leaves.map((leave) => (
                                 <tr key={leave.id}>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{leave.student?.name}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{leave.student?.studentClass}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{leave.startDate} to {leave.endDate}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{leave.reason}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${leave.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                                                leave.status === 'DECLINED' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                                            leave.status === 'DECLINED' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
                                             }`}>
                                             {leave.status}
                                         </span>
                                     </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{leave.coordinator ? leave.coordinator.name : '-'}</td>
                                 </tr>
                             ))}
                         </tbody>

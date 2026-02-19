@@ -9,6 +9,8 @@ import com.kumarSatyam.leave.repository.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.kumarSatyam.leave.entity.Notification;
+import com.kumarSatyam.leave.repository.NotificationRepository;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -24,10 +26,17 @@ public class LeaveService {
     @Autowired
     private CoordinatorRepository coordinatorRepository;
 
+    @Autowired
+    private NotificationRepository notificationRepository;
+
     public String applyForLeave(LeaveRequest request) {
-        // request.getStudent() should be set with ID, but we need to fetch full entity logic?
-        // Usually, the controller passes a request with a transient Student object or just ID.
-        // Let's assume request.getStudent().getId() is valid.
+        if (request.getStartDate() == null || request.getEndDate() == null || request.getReason() == null || request.getReason().trim().isEmpty()) {
+            return "Application Rejected: All fields (Start Date, End Date, Reason) are required.";
+        }
+
+        if (request.getEndDate().isBefore(request.getStartDate())) {
+            return "Application Rejected: End Date cannot be before Start Date.";
+        }
         
         Long studentId = request.getStudent().getId();
         Student student = studentRepository.findById(studentId)
@@ -52,11 +61,28 @@ public class LeaveService {
 
         // Save
         request.setStudent(student);
-        leaveRequestRepository.save(request);
+        LeaveRequest savedRequest = leaveRequestRepository.save(request);
+
+        // Notify Coordinator
+        List<Coordinator> coordinators = coordinatorRepository.findByAssignedClass(student.getStudentClass());
+        for (Coordinator coordinator : coordinators) {
+            Notification notification = new Notification();
+            notification.setRecipient(coordinator);
+            notification.setMessage("New leave request from " + student.getName() + " (" + student.getRollNumber() + ") for " + request.getStartDate() + " to " + request.getEndDate());
+            notificationRepository.save(notification);
+        }
+
         return "Leave application submitted successfully.";
     }
 
-    public List<LeaveRequest> getAllLeaves() {
+    public List<LeaveRequest> getAllLeaves(String section, LocalDate date) {
+        if (section != null && date != null) {
+            return leaveRequestRepository.findBySectionAndDate(section, date);
+        } else if (section != null) {
+            return leaveRequestRepository.findByStudent_StudentClassContainingIgnoreCase(section);
+        } else if (date != null) {
+            return leaveRequestRepository.findByDate(date);
+        }
         return leaveRequestRepository.findAll();
     }
     
@@ -74,6 +100,17 @@ public class LeaveService {
         leave.setCoordinator(coordinator);
         leave.setCoordinatorComment(comment);
         
-        return leaveRequestRepository.save(leave);
+        LeaveRequest updatedLeave = leaveRequestRepository.save(leave);
+
+        // Send Notification
+        Notification notification = new Notification();
+        notification.setRecipient(leave.getStudent());
+        notification.setMessage("Your leave request from " + leave.getStartDate() + " to " + leave.getEndDate() + " has been " + status + " by " + coordinator.getName() + ".");
+        if (comment != null && !comment.isEmpty()) {
+            notification.setMessage(notification.getMessage() + " Comment: " + comment);
+        }
+        notificationRepository.save(notification);
+
+        return updatedLeave;
     }
 }
