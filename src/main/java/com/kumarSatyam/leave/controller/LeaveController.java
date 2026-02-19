@@ -71,6 +71,16 @@ public class LeaveController {
     public ResponseEntity<List<LeaveRequest>> getAllLeaves(
             @RequestParam(required = false) String section,
             @RequestParam(required = false) LocalDate date) {
+        
+        User currentUser = getCurrentUser();
+        
+        // If user is a Coordinator, FORCE the section filter to their assigned class
+        if (currentUser instanceof Coordinator) {
+            Coordinator coordinator = (Coordinator) currentUser;
+            return ResponseEntity.ok(leaveService.getAllLeaves(coordinator.getAssignedClass(), date));
+        }
+        
+        // If Admin, use provided filters
         return ResponseEntity.ok(leaveService.getAllLeaves(section, date));
     }
 
