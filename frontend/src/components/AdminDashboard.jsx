@@ -3,6 +3,7 @@ import api from '../api/axiosConfig';
 
 const AdminDashboard = () => {
     const [leaves, setLeaves] = useState([]);
+    const [emergencyLeaves, setEmergencyLeaves] = useState([]);
     const [pendingCoordinators, setPendingCoordinators] = useState([]);
     const [allCoordinators, setAllCoordinators] = useState([]);
     const [selectedCoordinator, setSelectedCoordinator] = useState(null);
@@ -18,6 +19,7 @@ const AdminDashboard = () => {
         fetchPendingCoordinators();
         fetchAllLeaves();
         fetchAllCoordinators();
+        fetchEmergencyPending();
     }, [filterSection, filterDate]);
 
     const fetchPendingCoordinators = async () => {
@@ -43,11 +45,20 @@ const AdminDashboard = () => {
             const params = {};
             if (filterSection) params.section = filterSection;
             if (filterDate) params.date = filterDate;
-
             const response = await api.get('/leaves/all', { params });
             setLeaves(response.data);
         } catch (err) {
             console.error("Failed to fetch leaves", err);
+        }
+    };
+
+    // Feature 4: Fetch emergency leaves pending admin approval
+    const fetchEmergencyPending = async () => {
+        try {
+            const response = await api.get('/admin/emergency-pending');
+            setEmergencyLeaves(response.data);
+        } catch (err) {
+            console.error("Failed to fetch emergency pending", err);
         }
     };
 
@@ -79,6 +90,27 @@ const AdminDashboard = () => {
         }
     };
 
+    // Feature 4: Admin final approve emergency leave
+    const emergencyApprove = async (id) => {
+        try {
+            await api.put(`/admin/leaves/${id}/emergency-approve`);
+            setSuccess('Emergency leave approved successfully!');
+            fetchEmergencyPending();
+            fetchAllLeaves();
+            setTimeout(() => setSuccess(''), 3000);
+        } catch (err) {
+            setError('Failed to approve emergency leave');
+            setTimeout(() => setError(''), 3000);
+        }
+    };
+
+    const getStatusStyle = (status) => {
+        if (status === 'APPROVED') return 'bg-green-100 text-green-800';
+        if (status === 'DECLINED') return 'bg-red-100 text-red-800';
+        if (status === 'PENDING_ADMIN') return 'bg-purple-100 text-purple-800';
+        return 'bg-yellow-100 text-yellow-800';
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -87,11 +119,12 @@ const AdminDashboard = () => {
                     <p className="text-gray-500 dark:text-gray-400">System-wide leave management and staff oversight</p>
                 </div>
 
-                <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-fit">
+                <div className="flex flex-wrap bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-fit gap-1">
                     {[
                         { id: 'leaves', label: 'All Leaves', icon: '📋' },
+                        { id: 'emergency', label: 'Emergency', icon: '🚨', count: emergencyLeaves.length },
                         { id: 'coordinators', label: 'Coordinators', icon: '👔' },
-                        { id: 'approvals', label: 'Pending', icon: '🚨', count: pendingCoordinators.length }
+                        { id: 'approvals', label: 'Pending', icon: '⏳', count: pendingCoordinators.length }
                     ].map(tab => (
                         <button
                             key={tab.id}
@@ -100,7 +133,7 @@ const AdminDashboard = () => {
                         >
                             <span>{tab.icon}</span>
                             <span>{tab.label}</span>
-                            {tab.count > 0 && <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">{tab.count}</span>}
+                            {tab.count > 0 && <span className={`text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1 ${tab.id === 'emergency' ? 'bg-red-600 animate-pulse' : 'bg-red-500'}`}>{tab.count}</span>}
                         </button>
                     ))}
                 </div>
@@ -138,16 +171,17 @@ const AdminDashboard = () => {
                                     <th>Student</th>
                                     <th>Class</th>
                                     <th>Dates</th>
+                                    <th>Type</th>
                                     <th>Status</th>
                                     <th>Coordinator</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                                 {leaves.length === 0 ? (
-                                    <tr><td colSpan="5" className="py-12 text-center text-gray-400">No records matching filters</td></tr>
+                                    <tr><td colSpan="6" className="py-12 text-center text-gray-400">No records matching filters</td></tr>
                                 ) : (
                                     leaves.map((leave) => (
-                                        <tr key={leave.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/20">
+                                        <tr key={leave.id} className={`hover:bg-gray-50/50 dark:hover:bg-gray-700/20 ${leave.emergency ? 'border-l-4 border-red-400' : ''}`}>
                                             <td className="px-6 py-4">
                                                 <div className="font-semibold">{leave.student?.name}</div>
                                                 <div className="text-[10px] text-gray-400 uppercase">{leave.student?.rollNumber}</div>
@@ -157,10 +191,14 @@ const AdminDashboard = () => {
                                                 {leave.startDate} <span className="text-gray-300 mx-1">→</span> {leave.endDate}
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`badge ${leave.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                                                        leave.status === 'DECLINED' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
-                                                    }`}>
-                                                    {leave.status}
+                                                {leave.emergency
+                                                    ? <span className="badge bg-red-100 text-red-700">🚨 Emergency</span>
+                                                    : <span className="badge bg-gray-100 text-gray-500">Normal</span>
+                                                }
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`badge ${getStatusStyle(leave.status)}`}>
+                                                    {leave.status === 'PENDING_ADMIN' ? '⏳ Awaiting Admin' : leave.status}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-sm italic text-gray-500">
@@ -172,6 +210,63 @@ const AdminDashboard = () => {
                             </tbody>
                         </table>
                     </div>
+                </div>
+            )}
+
+            {/* Feature 4: Emergency Approvals Tab */}
+            {activeTab === 'emergency' && (
+                <div className="glass-card p-6">
+                    <div className="mb-6">
+                        <h3 className="text-xl font-bold flex items-center gap-2">🚨 Emergency Leave Approvals</h3>
+                        <p className="text-sm text-gray-500 mt-1">These leaves have been approved by the coordinator and require your final approval.</p>
+                    </div>
+                    {emergencyLeaves.length === 0 ? (
+                        <div className="py-16 text-center text-gray-400">
+                            <div className="text-4xl mb-3">✅</div>
+                            <div className="font-semibold">No emergency leaves pending your approval</div>
+                        </div>
+                    ) : (
+                        <div className="table-container">
+                            <table className="table-modern">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Class</th>
+                                        <th>Dates</th>
+                                        <th>Reason</th>
+                                        <th>Approved By</th>
+                                        <th>Comment</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                                    {emergencyLeaves.map((leave) => (
+                                        <tr key={leave.id} className="hover:bg-red-50/30 dark:hover:bg-red-900/10 border-l-4 border-red-400">
+                                            <td className="px-6 py-4">
+                                                <div className="font-semibold">{leave.student?.name}</div>
+                                                <div className="text-[10px] text-gray-400 uppercase">{leave.student?.rollNumber}</div>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm font-medium text-gray-500">{leave.student?.studentClass}</td>
+                                            <td className="px-6 py-4 text-xs">
+                                                {leave.startDate} <span className="text-gray-300 mx-1">→</span> {leave.endDate}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm max-w-[200px] truncate">{leave.reason}</td>
+                                            <td className="px-6 py-4 text-sm font-semibold text-indigo-600">{leave.coordinator?.name || '—'}</td>
+                                            <td className="px-6 py-4 text-sm italic text-gray-500">{leave.coordinatorComment || '—'}</td>
+                                            <td className="px-6 py-4">
+                                                <button
+                                                    onClick={() => emergencyApprove(leave.id)}
+                                                    className="btn-primary py-1.5 text-sm whitespace-nowrap"
+                                                >
+                                                    ✅ Final Approve
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
             )}
 

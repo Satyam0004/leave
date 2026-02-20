@@ -45,7 +45,7 @@ public class LeaveController {
             leaveRequest.setStudent((Student) currentUser);
             
             String result = leaveService.applyForLeave(leaveRequest);
-            if (result.startsWith("Not Eligible")) {
+            if (result.startsWith("Not Eligible") || result.startsWith("Application Rejected")) {
                 return ResponseEntity.badRequest().body(result);
             }
             return ResponseEntity.ok(result);
@@ -65,6 +65,17 @@ public class LeaveController {
         return ResponseEntity.ok(leaveService.getStudentLeaves(currentUser.getId()));
     }
 
+    // STUDENT: Get leave stats (Feature 1)
+    @GetMapping("/my-stats")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<Map<String, Object>> getMyStats() {
+        User currentUser = getCurrentUser();
+        if (!(currentUser instanceof Student)) {
+            return ResponseEntity.status(403).build();
+        }
+        return ResponseEntity.ok(leaveService.getLeaveStats(currentUser.getId()));
+    }
+
     // COORDINATOR/ADMIN: View all leaves with optional filters
     @GetMapping("/all")
     @PreAuthorize("hasAnyRole('COORDINATOR', 'ADMIN')")
@@ -82,6 +93,22 @@ public class LeaveController {
         
         // If Admin, use provided filters
         return ResponseEntity.ok(leaveService.getAllLeaves(section, date));
+    }
+
+    // COORDINATOR: Get pending leaves, optionally filtered by submission date (Feature 2)
+    // No date param → all PENDING leaves for the class (including future-dated applications)
+    // With date param → only leaves submitted on that specific calendar day
+    @GetMapping("/pending")
+    @PreAuthorize("hasRole('COORDINATOR')")
+    public ResponseEntity<List<LeaveRequest>> getPendingLeaves(
+            @RequestParam(required = false) LocalDate date) {
+        User currentUser = getCurrentUser();
+        if (!(currentUser instanceof Coordinator)) {
+            return ResponseEntity.status(403).build();
+        }
+        Coordinator coordinator = (Coordinator) currentUser;
+        // pass date as-is (null = all pending, non-null = filter by submission date)
+        return ResponseEntity.ok(leaveService.getPendingLeavesByClassAndDate(coordinator.getAssignedClass(), date));
     }
 
     // COORDINATOR: Approve/Decline leave
@@ -105,3 +132,4 @@ public class LeaveController {
         }
     }
 }
+

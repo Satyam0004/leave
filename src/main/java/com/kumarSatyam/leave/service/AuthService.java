@@ -84,9 +84,12 @@ public class AuthService {
 
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow();
         
-        // Extra check just in case, though CustomUserDetailsService handles enabled/disabled
-        if (!user.isApproved()) {
-             throw new RuntimeException("Account not approved yet");
+        // Approval check: Admins are always approved. Students/Coordinators need explicit approval.
+        if (!user.isApproved() && user.getRole() != Role.ADMIN) {
+            String pending = user.getRole() == Role.COORDINATOR
+                    ? "Your coordinator account is pending Admin approval."
+                    : "Your student account is pending Coordinator approval.";
+            throw new RuntimeException(pending);
         }
 
         String jwtToken = jwtUtils.generateToken(userDetailsService.loadUserByUsername(request.getEmail()));

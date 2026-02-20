@@ -4,20 +4,21 @@ import authService from '../api/authService';
 
 const StudentDashboard = () => {
     const [leaves, setLeaves] = useState([]);
+    const [stats, setStats] = useState(null);
     const [formData, setFormData] = useState({
         startDate: '',
         endDate: '',
-        reason: ''
+        reason: '',
+        emergency: false
     });
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
-    // We don't need currentUser from authService for the request body anymore, 
-    // as backend handles it, but good to have for UI.
     const currentUser = authService.getCurrentUser();
 
     useEffect(() => {
         fetchLeaves();
+        fetchStats();
     }, []);
 
     const fetchLeaves = async () => {
@@ -29,8 +30,18 @@ const StudentDashboard = () => {
         }
     };
 
+    const fetchStats = async () => {
+        try {
+            const response = await api.get('/leaves/my-stats');
+            setStats(response.data);
+        } catch (error) {
+            console.error("Error fetching stats", error);
+        }
+    };
+
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+        setFormData({ ...formData, [e.target.name]: value });
     };
 
     const handleSubmit = async (e) => {
@@ -44,19 +55,28 @@ const StudentDashboard = () => {
         }
 
         try {
-            // Backend expects leaveRequest object. 
-            // setStudent logic is now in backend.
             const response = await api.post('/leaves/apply', {
                 startDate: formData.startDate,
                 endDate: formData.endDate,
-                reason: formData.reason
+                reason: formData.reason,
+                emergency: formData.emergency
             });
             setMessage(response.data);
             fetchLeaves();
-            setFormData({ startDate: '', endDate: '', reason: '' });
+            fetchStats();
+            setFormData({ startDate: '', endDate: '', reason: '', emergency: false });
         } catch (err) {
             setError(err.response?.data || 'Failed to apply for leave');
         }
+    };
+
+    const lowAttendance = stats && stats.attendancePercentage !== null && stats.attendancePercentage < 75;
+
+    const getStatusStyle = (status) => {
+        if (status === 'APPROVED') return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+        if (status === 'DECLINED') return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+        if (status === 'PENDING_ADMIN') return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400';
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
     };
 
     return (
@@ -65,6 +85,34 @@ const StudentDashboard = () => {
                 <h2 className="text-3xl font-black text-gray-900 dark:text-white">Student Dashboard</h2>
                 <p className="text-gray-500 dark:text-gray-400">Welcome back! Apply for leave and track your status.</p>
             </div>
+
+            {/* Feature 1: Stats Cards */}
+            {stats && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="glass-card p-4 text-center">
+                        <div className="text-3xl font-black text-indigo-600 dark:text-indigo-400">{stats.leavesRemainingThisMonth}</div>
+                        <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Leaves Left</div>
+                        <div className="text-[10px] text-gray-400">This Month</div>
+                    </div>
+                    <div className="glass-card p-4 text-center">
+                        <div className="text-3xl font-black text-orange-500">{stats.leavesUsedThisMonth}</div>
+                        <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Used</div>
+                        <div className="text-[10px] text-gray-400">This Month</div>
+                    </div>
+                    <div className="glass-card p-4 text-center">
+                        <div className="text-3xl font-black text-green-600 dark:text-green-400">{stats.totalApproved}</div>
+                        <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Total Approved</div>
+                        <div className="text-[10px] text-gray-400">All Time</div>
+                    </div>
+                    <div className={`glass-card p-4 text-center ${lowAttendance ? 'border-2 border-red-400' : ''}`}>
+                        <div className={`text-3xl font-black ${lowAttendance ? 'text-red-500' : 'text-gray-700 dark:text-gray-300'}`}>
+                            {stats.attendancePercentage != null ? `${stats.attendancePercentage}%` : 'N/A'}
+                        </div>
+                        <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Attendance</div>
+                        {lowAttendance && <div className="text-[10px] text-red-400 font-bold">⚠ Below 75%</div>}
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Apply Form */}
@@ -111,8 +159,30 @@ const StudentDashboard = () => {
                                     placeholder="Explain why you need leave..."
                                 ></textarea>
                             </div>
-                            <button type="submit" className="btn-primary w-full py-3 font-bold">
-                                Submit Application
+
+                            {/* Feature 4: Emergency Leave checkbox — shown only when attendance < 75% */}
+                            {lowAttendance && (
+                                <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                                    <label className="flex items-start gap-3 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            name="emergency"
+                                            checked={formData.emergency}
+                                            onChange={handleChange}
+                                            className="mt-0.5 accent-red-500 w-4 h-4"
+                                        />
+                                        <div>
+                                            <span className="text-sm font-bold text-red-700 dark:text-red-400">🚨 Emergency Leave</span>
+                                            <p className="text-xs text-red-500 dark:text-red-400 mt-0.5">
+                                                Your attendance is below 75%. Emergency leave requires approval from both your Coordinator and Admin.
+                                            </p>
+                                        </div>
+                                    </label>
+                                </div>
+                            )}
+
+                            <button type="submit" className={`w-full py-3 font-bold rounded-xl transition-all ${formData.emergency ? 'bg-red-600 hover:bg-red-700 text-white' : 'btn-primary'}`}>
+                                {formData.emergency ? '🚨 Submit Emergency Application' : 'Submit Application'}
                             </button>
                         </form>
                     </div>
@@ -131,13 +201,14 @@ const StudentDashboard = () => {
                                     <tr>
                                         <th>Dates</th>
                                         <th>Reason</th>
+                                        <th>Type</th>
                                         <th>Status</th>
                                         <th>Feedback</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                                     {leaves.length === 0 ? (
-                                        <tr><td colSpan="4" className="py-12 text-center text-gray-400">No leave applications found</td></tr>
+                                        <tr><td colSpan="5" className="py-12 text-center text-gray-400">No leave applications found</td></tr>
                                     ) : (
                                         leaves.map((leave) => (
                                             <tr key={leave.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/20">
@@ -148,11 +219,15 @@ const StudentDashboard = () => {
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-[200px] truncate">{leave.reason}</td>
                                                 <td className="px-6 py-4">
-                                                    <span className={`badge ${leave.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                                                            leave.status === 'DECLINED' ? 'bg-red-100 text-red-800' :
-                                                                'bg-yellow-100 text-yellow-800'
-                                                        }`}>
-                                                        {leave.status}
+                                                    {leave.emergency ? (
+                                                        <span className="badge bg-red-100 text-red-700">🚨 Emergency</span>
+                                                    ) : (
+                                                        <span className="badge bg-gray-100 text-gray-600">Normal</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`badge ${getStatusStyle(leave.status)}`}>
+                                                        {leave.status === 'PENDING_ADMIN' ? '⏳ Awaiting Admin' : leave.status}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-sm italic text-gray-500">

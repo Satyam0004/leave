@@ -35,6 +35,12 @@ public class LeaveRequest {
     private Coordinator coordinator; // The coordinator who approved/declined
 
     private String coordinatorComment;
+
+    // Emergency leave fields
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean emergency = false;
+
+    private Boolean adminApproved;
     
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -42,6 +48,7 @@ public class LeaveRequest {
     public enum Status {
         PENDING,
         APPROVED,
-        DECLINED
+        DECLINED,
+        PENDING_ADMIN  // Coordinator approved emergency leave; waiting for Admin final approval
     }
 }

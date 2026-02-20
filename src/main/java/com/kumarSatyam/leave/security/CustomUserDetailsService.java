@@ -35,13 +35,16 @@ public class CustomUserDetailsService implements UserDetailsService {
         // Spring Security User object has 'enabled', 'accountNonLocked' etc.
         // We can map 'isApproved' to 'enabled'.
 
+        // NOTE: We always return enabled=true here.
+        // Approval enforcement is done in AuthService.login() so we can return a friendly message.
+        // If we set enabled=user.isApproved() Spring Security throws DisabledException before login() runs.
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPassword(),
-                user.isApproved(), // enabled
-                true, // accountNonExpired
-                true, // credentialsNonExpired
-                true, // accountNonLocked
+                true,  // always enabled — isApproved checked in AuthService.login()
+                true,  // accountNonExpired
+                true,  // credentialsNonExpired
+                true,  // accountNonLocked
                 authorities
         );
     }
