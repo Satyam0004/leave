@@ -6,6 +6,7 @@ import com.kumarSatyam.leave.entity.Coordinator;
 import com.kumarSatyam.leave.entity.User;
 import com.kumarSatyam.leave.repository.UserRepository;
 import com.kumarSatyam.leave.service.LeaveService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,30 +19,27 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/leaves")
+@AllArgsConstructor
 public class LeaveController {
 
-    @Autowired
-    private LeaveService leaveService;
+    private final LeaveService leaveService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    // STUDENT: Apply for leave
     @PostMapping("/apply")
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<?> applyForLeave(@RequestBody LeaveRequest leaveRequest) {
         try {
-            User currentUser = getCurrentUser();
+            var currentUser = getCurrentUser();
             if (!(currentUser instanceof Student)) {
                 return ResponseEntity.status(403).body("Only students can apply for leave");
             }
-            
-            // Set the student to the current logged in user
+
             leaveRequest.setStudent((Student) currentUser);
             
             String result = leaveService.applyForLeave(leaveRequest);
@@ -54,10 +52,9 @@ public class LeaveController {
         }
     }
 
-    // STUDENT: View their leaves
     @GetMapping("/my-leaves")
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<List<LeaveRequest>> getMyLeaves() {
+    public ResponseEntity<?> getMyLeaves() {
         User currentUser = getCurrentUser();
          if (!(currentUser instanceof Student)) {
             throw new RuntimeException("Current user is not a student");
@@ -65,7 +62,6 @@ public class LeaveController {
         return ResponseEntity.ok(leaveService.getStudentLeaves(currentUser.getId()));
     }
 
-    // STUDENT: Get leave stats (Feature 1)
     @GetMapping("/my-stats")
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<Map<String, Object>> getMyStats() {
@@ -76,47 +72,37 @@ public class LeaveController {
         return ResponseEntity.ok(leaveService.getLeaveStats(currentUser.getId()));
     }
 
-    // COORDINATOR/ADMIN: View all leaves with optional filters
     @GetMapping("/all")
     @PreAuthorize("hasAnyRole('COORDINATOR', 'ADMIN')")
-    public ResponseEntity<List<LeaveRequest>> getAllLeaves(
+    public ResponseEntity<?> getAllLeaves(
             @RequestParam(required = false) String section,
             @RequestParam(required = false) LocalDate date) {
         
-        User currentUser = getCurrentUser();
-        
-        // If user is a Coordinator, FORCE the section filter to their assigned class
-        if (currentUser instanceof Coordinator) {
-            Coordinator coordinator = (Coordinator) currentUser;
+        var currentUser = getCurrentUser();
+
+        if (currentUser instanceof Coordinator coordinator) {
             return ResponseEntity.ok(leaveService.getAllLeaves(coordinator.getAssignedClass(), date));
         }
-        
-        // If Admin, use provided filters
+
         return ResponseEntity.ok(leaveService.getAllLeaves(section, date));
     }
 
-    // COORDINATOR: Get pending leaves, optionally filtered by submission date (Feature 2)
-    // No date param → all PENDING leaves for the class (including future-dated applications)
-    // With date param → only leaves submitted on that specific calendar day
     @GetMapping("/pending")
     @PreAuthorize("hasRole('COORDINATOR')")
-    public ResponseEntity<List<LeaveRequest>> getPendingLeaves(
+    public ResponseEntity<?> getPendingLeaves(
             @RequestParam(required = false) LocalDate date) {
-        User currentUser = getCurrentUser();
-        if (!(currentUser instanceof Coordinator)) {
+        var currentUser = getCurrentUser();
+        if (!(currentUser instanceof Coordinator coordinator)) {
             return ResponseEntity.status(403).build();
         }
-        Coordinator coordinator = (Coordinator) currentUser;
-        // pass date as-is (null = all pending, non-null = filter by submission date)
         return ResponseEntity.ok(leaveService.getPendingLeavesByClassAndDate(coordinator.getAssignedClass(), date));
     }
 
-    // COORDINATOR: Approve/Decline leave
     @PutMapping("/{leaveId}/status")
     @PreAuthorize("hasRole('COORDINATOR')")
     public ResponseEntity<?> updateLeaveStatus(@PathVariable Long leaveId, @RequestBody Map<String, Object> payload) {
         try {
-            User currentUser = getCurrentUser();
+            var currentUser = getCurrentUser();
             if (!(currentUser instanceof Coordinator)) {
                  return ResponseEntity.status(403).body("Only coordinators can update status");
             }

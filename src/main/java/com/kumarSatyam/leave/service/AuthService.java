@@ -11,30 +11,25 @@ import com.kumarSatyam.leave.entity.User;
 import com.kumarSatyam.leave.repository.CoordinatorRepository;
 import com.kumarSatyam.leave.repository.StudentRepository;
 import com.kumarSatyam.leave.repository.UserRepository;
+import com.kumarSatyam.leave.security.CustomUserDetailsService;
 import com.kumarSatyam.leave.security.JwtUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private StudentRepository studentRepository;
-    @Autowired
-    private CoordinatorRepository coordinatorRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private JwtUtils jwtUtils;
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private com.kumarSatyam.leave.security.CustomUserDetailsService userDetailsService;
+    private final UserRepository userRepository;
+    private final StudentRepository studentRepository;
+    private final CoordinatorRepository coordinatorRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
+    private final AuthenticationManager authenticationManager;
+    private final CustomUserDetailsService userDetailsService;
 
     public AuthResponse registerStudent(StudentRegisterDto request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -83,8 +78,7 @@ public class AuthService {
         );
 
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow();
-        
-        // Approval check: Admins are always approved. Students/Coordinators need explicit approval.
+
         if (!user.isApproved() && user.getRole() != Role.ADMIN) {
             String pending = user.getRole() == Role.COORDINATOR
                     ? "Your coordinator account is pending Admin approval."

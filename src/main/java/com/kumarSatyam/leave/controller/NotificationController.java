@@ -4,6 +4,7 @@ import com.kumarSatyam.leave.entity.Notification;
 import com.kumarSatyam.leave.entity.User;
 import com.kumarSatyam.leave.repository.NotificationRepository;
 import com.kumarSatyam.leave.repository.UserRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,13 +15,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/notifications")
+@AllArgsConstructor
 public class NotificationController {
 
-    @Autowired
-    private NotificationRepository notificationRepository;
+    private final NotificationRepository notificationRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -28,7 +28,7 @@ public class NotificationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Notification>> getMyNotifications() {
+    public ResponseEntity<?> getMyNotifications() {
         User currentUser = getCurrentUser();
         return ResponseEntity.ok(notificationRepository.findByRecipient_IdOrderByCreatedAtDesc(currentUser.getId()));
     }

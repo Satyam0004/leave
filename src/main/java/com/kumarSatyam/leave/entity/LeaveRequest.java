@@ -32,11 +32,10 @@ public class LeaveRequest {
 
     @ManyToOne
     @JoinColumn(name = "coordinator_id")
-    private Coordinator coordinator; // The coordinator who approved/declined
+    private Coordinator coordinator;
 
     private String coordinatorComment;
 
-    // Emergency leave fields
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean emergency = false;
 
@@ -49,6 +48,6 @@ public class LeaveRequest {
         PENDING,
         APPROVED,
         DECLINED,
-        PENDING_ADMIN  // Coordinator approved emergency leave; waiting for Admin final approval
+        PENDING_ADMIN
     }
 }

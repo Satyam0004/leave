@@ -6,7 +6,7 @@ import com.kumarSatyam.leave.entity.Student;
 import com.kumarSatyam.leave.repository.CoordinatorRepository;
 import com.kumarSatyam.leave.repository.LeaveRequestRepository;
 import com.kumarSatyam.leave.repository.StudentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.kumarSatyam.leave.entity.Notification;
@@ -17,19 +17,16 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class LeaveService {
 
-    @Autowired
-    private LeaveRequestRepository leaveRequestRepository;
+    private final LeaveRequestRepository leaveRequestRepository;
 
-    @Autowired
-    private StudentRepository studentRepository;
+    private final StudentRepository studentRepository;
 
-    @Autowired
-    private CoordinatorRepository coordinatorRepository;
+    private final CoordinatorRepository coordinatorRepository;
 
-    @Autowired
-    private NotificationRepository notificationRepository;
+    private final NotificationRepository notificationRepository;
 
     public String applyForLeave(LeaveRequest request) {
         if (request.getStartDate() == null || request.getEndDate() == null || request.getReason() == null || request.getReason().trim().isEmpty()) {
@@ -43,13 +40,11 @@ public class LeaveService {
         Long studentId = request.getStudent().getId();
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
-        
-        // 1. Check Eligibility: 75% attendance (skipped for emergency requests)
+
         if (!request.isEmergency() && student.getAttendancePercentage() != null && student.getAttendancePercentage() < 75.0) {
             return "Not Eligible: Attendance is below 75%. You may apply for Emergency Leave instead.";
         }
 
-        // 2. Check Eligibility: Max 4 leaves per month
         List<LeaveRequest> studentLeaves = leaveRequestRepository.findByStudent(student);
         long leavesThisMonth = studentLeaves.stream()
                 .filter(l -> l.getStartDate().getMonth() == LocalDate.now().getMonth() 
@@ -61,11 +56,9 @@ public class LeaveService {
             return "Not Eligible: You have already taken 4 leaves this month.";
         }
 
-        // Save
         request.setStudent(student);
-        LeaveRequest savedRequest = leaveRequestRepository.save(request);
+        leaveRequestRepository.save(request);
 
-        // Notify Coordinator
         List<Coordinator> coordinators = coordinatorRepository.findByAssignedClass(student.getStudentClass());
         for (Coordinator coordinator : coordinators) {
             Notification notification = new Notification();
@@ -98,7 +91,6 @@ public class LeaveService {
         LeaveRequest leave = leaveRequestRepository.findById(leaveId).orElseThrow(() -> new RuntimeException("Leave not found"));
         Coordinator coordinator = coordinatorRepository.findById(coordinatorId).orElseThrow(() -> new RuntimeException("Coordinator not found"));
 
-        // If coordinator approves an emergency leave, escalate to admin instead of final approve
         LeaveRequest.Status finalStatus = status;
         if (status == LeaveRequest.Status.APPROVED && leave.isEmergency()) {
             finalStatus = LeaveRequest.Status.PENDING_ADMIN;
@@ -110,7 +102,6 @@ public class LeaveService {
         
         LeaveRequest updatedLeave = leaveRequestRepository.save(leave);
 
-        // Send Notification
         Notification notification = new Notification();
         notification.setRecipient(leave.getStudent());
         String statusMsg = finalStatus == LeaveRequest.Status.PENDING_ADMIN
@@ -125,7 +116,6 @@ public class LeaveService {
         return updatedLeave;
     }
 
-    // Feature 1: Student leave stats
     public Map<String, Object> getLeaveStats(Long studentId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
@@ -150,9 +140,6 @@ public class LeaveService {
         return stats;
     }
 
-    // Feature 2: Coordinator - get pending leaves for class
-    // When date is null -> return ALL pending leaves (so future-dated applications are always shown)
-    // When date is set  -> filter by submission date (createdAt), NOT by the leave period
     public List<LeaveRequest> getPendingLeavesByClassAndDate(String assignedClass, LocalDate date) {
         if (date == null) {
             return leaveRequestRepository.findPendingByClass(assignedClass);
@@ -162,7 +149,6 @@ public class LeaveService {
         return leaveRequestRepository.findPendingByClassAndSubmissionDate(assignedClass, dayStart, dayEnd);
     }
 
-    // Feature 3: Per-student leave summary for coordinator
     public List<Map<String, Object>> getStudentLeaveSummary(String assignedClass) {
         List<LeaveRequest> allLeaves = leaveRequestRepository.findByStudent_StudentClassContainingIgnoreCase(assignedClass);
         Map<Long, Map<String, Object>> summaryMap = new HashMap<>();
@@ -190,7 +176,6 @@ public class LeaveService {
         return new java.util.ArrayList<>(summaryMap.values());
     }
 
-    // Feature 4: Admin final approval for emergency leave
     public LeaveRequest adminApproveEmergency(Long leaveId) {
         LeaveRequest leave = leaveRequestRepository.findById(leaveId)
                 .orElseThrow(() -> new RuntimeException("Leave not found"));

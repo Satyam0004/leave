@@ -17,7 +17,7 @@ public class User {
 
     @Column(nullable = false)
     @com.fasterxml.jackson.annotation.JsonIgnore
-    private String password; // In a real app, this should be hashed
+    private String password;
 
     @Column(nullable = false)
     private String name;

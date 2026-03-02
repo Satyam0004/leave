@@ -10,5 +10,4 @@ import lombok.EqualsAndHashCode;
 @Table(name = "admins")
 @PrimaryKeyJoinColumn(name = "user_id")
 public class Admin extends User {
-    // Admin specific fields if any
 }

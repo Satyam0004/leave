@@ -5,16 +5,17 @@ import com.kumarSatyam.leave.dto.CoordinatorRegisterDto;
 import com.kumarSatyam.leave.dto.LoginDto;
 import com.kumarSatyam.leave.dto.StudentRegisterDto;
 import com.kumarSatyam.leave.service.AuthService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@AllArgsConstructor
 public class AuthController {
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
 
     @PostMapping("/register/student")
     public ResponseEntity<AuthResponse> registerStudent(@RequestBody StudentRegisterDto request) {

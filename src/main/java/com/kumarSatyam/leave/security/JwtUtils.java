@@ -14,8 +14,7 @@ import java.util.function.Function;
 @Component
 public class JwtUtils {
 
-    // In a real app, this should be in application.properties
-    private static final String SECRET_KEY = "your_secret_key_which_should_be_long_enough_for_hs256_algorithm";
+    private static final String SECRET_KEY = "jhcfgnhgfalfhbsaileufhlfihcfbuihclehufnliufhseriluhslufnshlhgns";
     private static final long EXPIRATION_TIME = 86400000; // 24 hours
 
     private Key getSigningKey() {

@@ -1,33 +1,27 @@
 package com.kumarSatyam.leave.controller;
 
 import com.kumarSatyam.leave.entity.Coordinator;
-import com.kumarSatyam.leave.entity.Student;
 import com.kumarSatyam.leave.entity.User;
 import com.kumarSatyam.leave.repository.UserRepository;
 import com.kumarSatyam.leave.service.CoordinatorService;
 import com.kumarSatyam.leave.service.LeaveService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/coordinator")
 @PreAuthorize("hasRole('COORDINATOR')")
+@AllArgsConstructor
 public class CoordinatorController {
 
-    @Autowired
-    private CoordinatorService coordinatorService;
+    private final CoordinatorService coordinatorService;
 
-    @Autowired
-    private LeaveService leaveService;
+    private final LeaveService leaveService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     private Coordinator getCurrentCoordinator() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -37,26 +31,25 @@ public class CoordinatorController {
     }
 
     @GetMapping("/pending-students")
-    public ResponseEntity<List<Student>> getPendingStudents() {
+    public ResponseEntity<?> getPendingStudents() {
         Coordinator coordinator = getCurrentCoordinator();
         return ResponseEntity.ok(coordinatorService.getPendingStudentsForClass(coordinator.getAssignedClass()));
     }
 
     @GetMapping("/students")
-    public ResponseEntity<List<Student>> getAllStudents() {
+    public ResponseEntity<?> getAllStudents() {
         Coordinator coordinator = getCurrentCoordinator();
         return ResponseEntity.ok(coordinatorService.getStudentsByClass(coordinator.getAssignedClass()));
     }
 
-    // Feature 3: Per-student leave summary
     @GetMapping("/leave-summary")
-    public ResponseEntity<List<Map<String, Object>>> getStudentLeaveSummary() {
+    public ResponseEntity<?> getStudentLeaveSummary() {
         Coordinator coordinator = getCurrentCoordinator();
         return ResponseEntity.ok(leaveService.getStudentLeaveSummary(coordinator.getAssignedClass()));
     }
 
     @PostMapping("/approve-student/{id}")
-    public ResponseEntity<String> approveStudent(@PathVariable Long id) {
+    public ResponseEntity<?> approveStudent(@PathVariable Long id) {
         // In a real app, verify that the student belongs to the coordinator's class
         coordinatorService.approveStudent(id);
         return ResponseEntity.ok("Student approved successfully");
