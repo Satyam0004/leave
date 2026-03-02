@@ -6,6 +6,7 @@ target/
 node_modules/
 run.log
 .env
+src/main/java/com/kumarSatyam/leave/config/DataInitializer.java
 
 ### STS ###
 .apt_generated
