@@ -14,13 +14,13 @@ const Layout = () => {
     const [unreadCount, setUnreadCount] = useState(0);
 
     useEffect(() => {
-        if (user) {
+        if (user?.id) {
             fetchNotifications();
             // Poll for notifications every minute
             const interval = setInterval(fetchNotifications, 60000);
             return () => clearInterval(interval);
         }
-    }, [user]);
+    }, [user?.id]);
 
     const fetchNotifications = async () => {
         try {
