@@ -181,7 +181,7 @@ const StudentDashboard = () => {
                                 </div>
                             )}
 
-                            <button type="submit" className={`w-full py-3 font-bold rounded-xl transition-all ${formData.emergency ? 'bg-red-600 hover:bg-red-700 text-white' : 'btn-primary'}`}>
+                            <button type="submit" className={`w-full py-3 font-bold text-lg sm:text-base ${formData.emergency ? 'btn-danger' : 'btn-primary'}`}>
                                 {formData.emergency ? '🚨 Submit Emergency Application' : 'Submit Application'}
                             </button>
                         </form>

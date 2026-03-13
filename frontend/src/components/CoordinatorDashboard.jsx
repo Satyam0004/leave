@@ -149,7 +149,7 @@ const CoordinatorDashboard = () => {
                     <p className="text-gray-500 dark:text-gray-400">Manage leaves and students for {currentUser?.assignedClass || 'your class'}</p>
                 </div>
 
-                <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-fit">
+                <div className="flex max-w-full overflow-x-auto no-scrollbar bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-fit snap-x">
                     {[
                         { id: 'leaves', label: 'Leaves', icon: '📝' },
                         { id: 'approvals', label: 'Pending', icon: '⏳', count: pendingStudents.length },
@@ -256,8 +256,8 @@ const CoordinatorDashboard = () => {
                                             <td className="px-6 py-4 space-x-2">
                                                 {leave.status === 'PENDING' && (
                                                     <div className="flex gap-2">
-                                                        <button onClick={() => handleActionSearch(leave.id, 'APPROVED')} className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors" title="Approve">✅</button>
-                                                        <button onClick={() => handleActionSearch(leave.id, 'DECLINED')} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Decline">❌</button>
+                                                        <button onClick={() => handleActionSearch(leave.id, 'APPROVED')} className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all duration-300 hover:scale-110 active:scale-95" title="Approve">✅</button>
+                                                        <button onClick={() => handleActionSearch(leave.id, 'DECLINED')} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-300 hover:scale-110 active:scale-95" title="Decline">❌</button>
                                                     </div>
                                                 )}
                                                 {leave.status === 'PENDING_ADMIN' && (
@@ -298,7 +298,7 @@ const CoordinatorDashboard = () => {
                                             <td className="px-6 py-4">
                                                 <button
                                                     onClick={() => approveStudent(student.id)}
-                                                    className="btn-primary py-1.5"
+                                                    className="btn-primary py-1.5 text-xs sm:text-sm"
                                                 >
                                                     Approve
                                                 </button>
@@ -394,10 +394,10 @@ const CoordinatorDashboard = () => {
                         />
 
                         <div className="flex gap-3">
-                            <button onClick={cancelAction} className="btn-secondary flex-1">Cancel</button>
+                            <button onClick={cancelAction} className="btn-secondary flex-1 text-sm sm:text-base">Cancel</button>
                             <button
                                 onClick={confirmAction}
-                                className={`flex-1 font-bold ${actionType === 'APPROVED' ? 'btn-primary' : 'btn-danger'}`}
+                                className={`flex-1 font-bold text-sm sm:text-base ${actionType === 'APPROVED' ? 'btn-primary' : 'btn-danger'}`}
                             >
                                 Confirm {actionType === 'APPROVED' ? 'Approval' : 'Decline'}
                             </button>

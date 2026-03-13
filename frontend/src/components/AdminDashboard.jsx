@@ -119,7 +119,7 @@ const AdminDashboard = () => {
                     <p className="text-gray-500 dark:text-gray-400">System-wide leave management and staff oversight</p>
                 </div>
 
-                <div className="flex flex-wrap bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-fit gap-1">
+                <div className="flex max-w-full overflow-x-auto no-scrollbar bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-fit gap-1 snap-x">
                     {[
                         { id: 'leaves', label: 'All Leaves', icon: '📋' },
                         { id: 'emergency', label: 'Emergency', icon: '🚨', count: emergencyLeaves.length },
@@ -256,7 +256,7 @@ const AdminDashboard = () => {
                                             <td className="px-6 py-4">
                                                 <button
                                                     onClick={() => emergencyApprove(leave.id)}
-                                                    className="btn-primary py-1.5 text-sm whitespace-nowrap"
+                                                    className="btn-primary py-1.5 text-xs sm:text-sm whitespace-nowrap"
                                                 >
                                                     ✅ Final Approve
                                                 </button>
@@ -295,7 +295,7 @@ const AdminDashboard = () => {
                                             <td className="px-6 py-4">
                                                 <button
                                                     onClick={() => fetchCoordinatorStudents(coordinator.id)}
-                                                    className="text-xs font-bold text-gray-400 hover:text-indigo-600 transition-colors uppercase tracking-widest"
+                                                    className="text-xs font-bold text-gray-500 hover:text-indigo-600 transition-all duration-300 uppercase tracking-widest hover:scale-105 active:scale-95 inline-block"
                                                 >
                                                     View Students ➔
                                                 </button>
@@ -313,7 +313,7 @@ const AdminDashboard = () => {
                 <div className="space-y-6 animate-in slide-in-from-right-4">
                     <button
                         onClick={() => setActiveTab('coordinators')}
-                        className="text-sm font-bold text-gray-500 hover:text-indigo-600 flex items-center gap-2"
+                        className="text-sm font-bold text-gray-500 hover:text-indigo-600 flex items-center gap-2 hover:-translate-x-1 transition-transform duration-300 w-fit"
                     >
                         ← Back to Coordinators
                     </button>
@@ -382,7 +382,7 @@ const AdminDashboard = () => {
                                             <td className="px-6 py-4">
                                                 <button
                                                     onClick={() => approveCoordinator(coordinator.id)}
-                                                    className="btn-primary py-1.5"
+                                                    className="btn-primary py-1.5 text-xs sm:text-sm"
                                                 >
                                                     Enable Account
                                                 </button>

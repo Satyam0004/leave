@@ -89,7 +89,7 @@ const Layout = () => {
                                 {showNotifications && (
                                     <>
                                         <div className="fixed inset-0 z-10" onClick={() => setShowNotifications(false)}></div>
-                                        <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-2xl overflow-hidden z-20 animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="absolute right-0 mt-3 w-[calc(100vw-2rem)] sm:w-80 max-w-xs sm:max-w-none bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-2xl overflow-hidden z-20 animate-in fade-in slide-in-from-top-2 duration-200">
                                             <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
                                                 <h3 className="font-bold text-gray-800 dark:text-gray-100">Notifications</h3>
                                                 {notifications.length > 0 && (
@@ -139,7 +139,7 @@ const Layout = () => {
 
                             <button
                                 onClick={handleLogout}
-                                className="hidden sm:flex items-center px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-red-500 to-pink-600 rounded-xl hover:from-red-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg focus:outline-none"
+                                className="flex items-center px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-red-500 to-pink-600 rounded-xl hover:from-red-600 hover:to-pink-700 transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98] focus:outline-none"
                             >
                                 Logout
                             </button>
