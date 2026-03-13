@@ -27,7 +27,7 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
 
-    @Value("${frontend.url:http://localhost:5173}")
+    @Value("${frontend.url}")
     private String frontendUrl;
 
     @Bean
@@ -69,7 +69,7 @@ public class SecurityConfig {
     @Bean
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
         org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
-        configuration.setAllowedOrigins(java.util.Arrays.asList(frontendUrl, "http://localhost:5173"));
+        configuration.setAllowedOriginPatterns(java.util.Arrays.asList("*")); // Allow any origin pattern to avoid strict match 403 issues
         configuration.setAllowedMethods(java.util.Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(java.util.Arrays.asList("*"));
         configuration.setAllowCredentials(true);
